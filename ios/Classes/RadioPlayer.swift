@@ -6,10 +6,11 @@
 
 import MediaPlayer
 import AVKit
+import MobileVLCKit
 
-class RadioPlayer: NSObject, AVPlayerItemMetadataOutputPushDelegate {
-    private var player: AVPlayer!
-    private var playerItem: AVPlayerItem!
+class RadioPlayer: NSObject, AVPlayerItemMetadataOutputPushDelegate, VLCMediaPlayerDelegate {
+    private var player: VLCMediaPlayer!
+    private var playerItem: VLCMedia!
     var defaultArtwork: UIImage?
     var metadataArtwork: UIImage?
     var ignoreIcy: Bool = false
@@ -20,15 +21,19 @@ class RadioPlayer: NSObject, AVPlayerItemMetadataOutputPushDelegate {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = [MPMediaItemPropertyTitle: streamTitle, ]
         defaultArtwork = nil
         metadataArtwork = nil
-        playerItem = AVPlayerItem(url: URL(string: streamUrl)!)
+        playerItem = VLCMedia(url: URL(string: streamUrl)!)
 
         if (player == nil) {
             // Create an AVPlayer.
-            player = AVPlayer(playerItem: playerItem)
-            player.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options: [.new], context: nil)
+            player = VLCMediaPlayer()
+            player.media = playerItem
+            
+            NotificationCenter.default.addObserver(self, selector: #selector(mediaPlayerStateChanged), name: NSNotification.Name(rawValue: VLCMediaPlayerStateChanged), object: nil)
+
+            // player.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options: [.new], context: nil)
             runInBackground()
         } else {
-            player.replaceCurrentItem(with: playerItem)
+             player.media = playerItem
         }
 
         // Set interruption handler.
@@ -38,9 +43,9 @@ class RadioPlayer: NSObject, AVPlayerItemMetadataOutputPushDelegate {
         }
 
         // Set metadata handler.
-        let metaOutput = AVPlayerItemMetadataOutput(identifiers: nil)
-        metaOutput.setDelegate(self, queue: DispatchQueue.main)
-        playerItem.add(metaOutput)
+        // let metaOutput = AVPlayerItemMetadataOutput(identifiers: nil)
+        // metaOutput.setDelegate(self, queue: DispatchQueue.main)
+        // playerItem.add(metaOutput)
     }
 
     func setMetadata(_ rawMetadata: Array<String>) {
@@ -91,13 +96,13 @@ class RadioPlayer: NSObject, AVPlayerItemMetadataOutputPushDelegate {
     }
 
     func play() {
-        if (player.currentItem == nil) { player.replaceCurrentItem(with: playerItem) }
+        player.media = playerItem
         player.play()
     }
 
     func stop() {
         player.pause()
-        player.replaceCurrentItem(with: nil)
+        player.media = nil
     }
 
     func pause() {
@@ -141,6 +146,25 @@ class RadioPlayer: NSObject, AVPlayerItemMetadataOutputPushDelegate {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": true])
             }
         }
+    }
+
+     @objc func mediaPlayerStateChanged(aNotification: NSNotification!) {
+        if player == nil {
+            return
+        }
+        
+        switch player.state {
+        case .esAdded, .opening, .buffering, .playing:
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": true])
+            break
+        case .paused, .stopped, .error:
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": false])
+            break
+        default:
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": false])
+            break
+        }
+        
     }
 
     func metadataOutput(_ output: AVPlayerItemMetadataOutput, didOutputTimedMetadataGroups groups: [AVTimedMetadataGroup],

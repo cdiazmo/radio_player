@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> {
   void initRadioPlayer() {
     _radioPlayer.setChannel(
       title: 'Radio Player',
-      url: 'http://stream-uk1.radioparadise.com/aac-320',
+      url: 'http://emisoras.dip-badajoz.es:8022/stream',
       imagePath: 'assets/cover.jpg',
     );
 

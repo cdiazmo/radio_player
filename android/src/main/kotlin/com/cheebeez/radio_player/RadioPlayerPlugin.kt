@@ -163,7 +163,7 @@ class RadioPlayerPlugin : FlutterPlugin, MethodCallHandler {
         private var broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent != null) {
-                    val received = intent.getBooleanExtra(RadioPlayerService.ACTION_STATE_CHANGED_EXTRA, false)
+                    val received = intent.getIntExtra(RadioPlayerService.ACTION_STATE_CHANGED_EXTRA, 0)
                     eventSink?.success(received)
                 }
             }

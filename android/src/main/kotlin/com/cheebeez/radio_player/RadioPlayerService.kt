@@ -6,7 +6,6 @@
 
 package com.cheebeez.radio_player
 
-import com.cheebeez.radio_player.R
 import java.net.URL
 import java.net.URLEncoder
 import org.json.JSONObject
@@ -22,7 +21,6 @@ import android.content.Context
 import android.os.IBinder
 import android.os.Binder
 import android.app.Notification
-import android.util.Log
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.MediaItem
@@ -183,7 +181,7 @@ class RadioPlayerService : Service(), Player.Listener {
             .setContentType(C.CONTENT_TYPE_MUSIC)
             .build()
 
-        player.setAudioAttributes(audioAttributes, true);
+            player.setAudioAttributes(audioAttributes, true);
 
         // Setup notification manager.
         val mediaDescriptionAdapter = object : MediaDescriptionAdapter {
@@ -237,13 +235,20 @@ class RadioPlayerService : Service(), Player.Listener {
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
         super.onPlayWhenReadyChanged(playWhenReady, reason)
 
+        var value = 0
         if (playbackState == Player.STATE_IDLE && playWhenReady == true) {
             player.prepare()
+            value = 4
+        }
+        else
+        {
+            value = 5
         }
 
+        println("value: $value")
         // Notify the client.
         val stateIntent = Intent(ACTION_STATE_CHANGED)
-        stateIntent.putExtra(ACTION_STATE_CHANGED_EXTRA, playWhenReady)
+        stateIntent.putExtra(ACTION_STATE_CHANGED_EXTRA, value)
         localBroadcastManager.sendBroadcast(stateIntent)
     }
 
@@ -251,7 +256,39 @@ class RadioPlayerService : Service(), Player.Listener {
     override fun onPlaybackStateChanged(state: Int) {
         super.onPlaybackStateChanged(state)
         playbackState = state
+
+        var value = 0
+
+        if (playbackState == Player.STATE_IDLE) {
+            value = 2
+        }
+        else if (playbackState == Player.STATE_BUFFERING){
+            value = 3
+        }
+        else if (playbackState == Player.STATE_READY){
+            value = 4
+        }
+        else if (playbackState == Player.STATE_ENDED){
+            value = 6
+        }
+
+        println("value: $value")
+
+        if (value > 0) {
+        // Notify the client.
+            val stateIntent = Intent(ACTION_STATE_CHANGED)
+            stateIntent.putExtra(ACTION_STATE_CHANGED_EXTRA, value)
+            localBroadcastManager.sendBroadcast(stateIntent)
+        }
     }
+
+    // override fun onPlayerError(error: PlaybackException) {
+    //     super.onPlayerError(error)
+
+    //     val stateIntent = Intent(ACTION_STATE_CHANGED)
+    //     stateIntent.putExtra(ACTION_STATE_CHANGED_EXTRA, 7)
+    //     localBroadcastManager.sendBroadcast(stateIntent)
+    // }
 
     /** Triggers when metadata comes from the stream. */
     override fun onMetadata(rawMetadata: Metadata) {

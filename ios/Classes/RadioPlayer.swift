@@ -132,21 +132,21 @@ class RadioPlayer: NSObject, AVPlayerItemMetadataOutputPushDelegate, VLCMediaPla
         }
     }
 
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
-        guard let observedKeyPath = keyPath, object is AVPlayer, observedKeyPath == #keyPath(AVPlayer.timeControlStatus) else {
-            return
-        }
+    // override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+    //     guard let observedKeyPath = keyPath, object is AVPlayer, observedKeyPath == #keyPath(AVPlayer.timeControlStatus) else {
+    //         return
+    //     }
 
-        if let statusAsNumber = change?[NSKeyValueChangeKey.newKey] as? NSNumber {
-            let status = AVPlayer.TimeControlStatus(rawValue: statusAsNumber.intValue)
+    //     if let statusAsNumber = change?[NSKeyValueChangeKey.newKey] as? NSNumber {
+    //         let status = AVPlayer.TimeControlStatus(rawValue: statusAsNumber.intValue)
 
-            if status == .paused {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": false])
-            } else if status == .waitingToPlayAtSpecifiedRate {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": true])
-            }
-        }
-    }
+    //         if status == .paused {
+    //             NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": false])
+    //         } else if status == .waitingToPlayAtSpecifiedRate {
+    //             NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": true])
+    //         }
+    //     }
+    // }
 
      @objc func mediaPlayerStateChanged(aNotification: NSNotification!) {
         if player == nil {
@@ -154,14 +154,29 @@ class RadioPlayer: NSObject, AVPlayerItemMetadataOutputPushDelegate, VLCMediaPla
         }
         
         switch player.state {
-        case .esAdded, .opening, .buffering, .playing:
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": true])
+        case .esAdded: 
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": 1])
             break
-        case .paused, .stopped, .error:
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": false])
+        case .opening:
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": 2])
+            break
+        case .buffering: 
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": 3])
+            break
+        case .playing:
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": 4])
+            break
+        case .paused:
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": 5])
+            break
+        case .stopped:
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": 6])
+            break
+        case .error:
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": 7])
             break
         default:
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": false])
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "state"), object: nil, userInfo: ["state": 0])
             break
         }
         

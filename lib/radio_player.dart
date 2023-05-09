@@ -18,7 +18,7 @@ class RadioPlayer {
   static const _metadataArtworkChannel =
       BasicMessageChannel("radio_player/getArtwork", BinaryCodec());
 
-  Stream<bool>? _stateStream;
+  Stream<int>? _stateStream;
   Stream<List<String>>? _metadataStream;
 
   /// Set new streaming URL.
@@ -79,10 +79,9 @@ class RadioPlayer {
   }
 
   /// Get the playback state stream.
-  Stream<bool> get stateStream {
+  Stream<int> get stateStream {
     _stateStream ??=
-        _stateEvents.receiveBroadcastStream().map<bool>((value) => value);
-
+        _stateEvents.receiveBroadcastStream().map<int>((value) => value);
     return _stateStream!;
   }
 
